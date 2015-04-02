@@ -37,15 +37,17 @@
       :else (comp-vals value1 value2))))
 
 (defn play-game [player1-cards player2-cards]
-  (cond (empty? player1-cards) :player2
-        (empty? player2-cards) :player1
-        :else (let [[top1 rest1] player1-cards
-                    [top2 rest2] player2-cards
-                    play (play-round top1 top2)]
-                (if (= play :player1)
-                  (play-game (conj player1-cards
-                                   top2)
-                             rest2)
-                  (play-game rest1
-                             (conj player2-cards
-                                   top1))))))
+  (loop [player1 (into (clojure.lang.PersistentQueue/EMPTY)
+                       player1-cards)
+         player2 (into (clojure.lang.PersistentQueue/EMPTY)
+                       player2-cards)]
+    (cond (empty? player1-cards) :player2
+          (empty? player2-cards) :player1
+          :else (let [top1 (peek player1)
+                      top2 (peek player2)
+                      rest1 (pop player1)
+                      rest2 (pop player2)
+                      play (play-round top1 top2)]
+                  (if (= play :player1)
+                    (recur (conj (conj rest1 top1) top2) rest2)
+                    (recur rest1 (conj (conj rest2 top1) top2)))))))
