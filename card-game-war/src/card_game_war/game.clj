@@ -40,16 +40,24 @@
                        player1-cards)
          player2 (into (clojure.lang.PersistentQueue/EMPTY)
                        player2-cards)]
+    (println (empty? player1-cards))
+    (println (empty? player2-cards))
     (cond (empty? player1-cards) :player2
           (empty? player2-cards) :player1
           :else (let [top1 (peek player1)
                       top2 (peek player2)
                       rest1 (pop player1)
                       rest2 (pop player2)
-                      play (play-round top1 top2)]
+                      play (play-round top1 top2)
+                      [r1 r2] (shuffle [top1 top2])]
+                  (println player1)
+                  (println player2)
+                  (println (nil? top1))
+                  (println (nil? top2))
+                  (println)
                   (if (= play :player1)
-                    (recur (conj (conj rest1 top1) top2) rest2)
-                    (recur rest1 (conj (conj rest2 top1) top2)))))))
+                    (recur (conj (conj rest1 r1) r2) rest2)
+                    (recur rest1 (conj (conj rest2 r1) r2)))))))
 
 (defmethod print-method clojure.lang.PersistentQueue
   [q, w]
@@ -61,7 +69,7 @@
       [p1 p2]
       (let [[f s & rest] cards]
         (recur rest (conj p1 f) (conj p2 s)))))
-  (shuf (shuffle cards) [] []))
+  (shuf cards [] []))
 
 (defn play-random-game []
   (let [[p1-cards p2-cards] (shuffle-cards)]
