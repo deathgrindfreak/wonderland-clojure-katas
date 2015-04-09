@@ -8,7 +8,6 @@
         rank ranks]
     [suit rank]))
 
-
 (defn play-round [player1-card player2-card]
   (let [[rank1 value1] player1-card
         [rank2 value2] player2-card
@@ -51,3 +50,19 @@
                   (if (= play :player1)
                     (recur (conj (conj rest1 top1) top2) rest2)
                     (recur rest1 (conj (conj rest2 top1) top2)))))))
+
+(defmethod print-method clojure.lang.PersistentQueue
+  [q, w]
+  (print-method '<- w) (print-method (seq q) w) (print-method '-< w))
+
+(defn shuffle-cards []
+  (defn shuf [cards p1 p2]
+    (if (empty? cards)
+      [p1 p2]
+      (let [[f s & rest] cards]
+        (recur rest (conj p1 f) (conj p2 s)))))
+  (shuf (shuffle cards) [] []))
+
+(defn play-random-game []
+  (let [[p1-cards p2-cards] (shuffle-cards)]
+    (play-game p1-cards p2-cards)))
