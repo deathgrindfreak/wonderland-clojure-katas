@@ -1,4 +1,6 @@
-(ns card-game-war.game)
+(ns card-game-war.game
+  (:gen-class)
+  (:require [clojure.tools.trace :refer [deftrace]]))
 
 ;; feel free to use these cards or use your own data structure
 (def suits [:spade :club :diamond :heart])
@@ -35,42 +37,33 @@
            (keyword? value2)) :player2
       :else (comp-vals value1 value2))))
 
-(defn play-game [player1-cards player2-cards]
+(deftrace play-game [player1-cards player2-cards]
   (loop [player1 (into (clojure.lang.PersistentQueue/EMPTY)
                        player1-cards)
          player2 (into (clojure.lang.PersistentQueue/EMPTY)
                        player2-cards)]
-    (println (empty? player1-cards))
-    (println (empty? player2-cards))
-    (cond (empty? player1-cards) :player2
-          (empty? player2-cards) :player1
-          :else (let [top1 (peek player1)
-                      top2 (peek player2)
-                      rest1 (pop player1)
-                      rest2 (pop player2)
-                      play (play-round top1 top2)
-                      [r1 r2] (shuffle [top1 top2])]
-                  (println player1)
-                  (println player2)
-                  (println (nil? top1))
-                  (println (nil? top2))
-                  (println)
-                  (if (= play :player1)
-                    (recur (conj (conj rest1 r1) r2) rest2)
-                    (recur rest1 (conj (conj rest2 r1) r2)))))))
+    (let [top1 (peek player1)
+          top2 (peek player2)
+          rest1 (pop player1)
+          rest2 (pop player2)
+          play (play-round top1 top2)
+          [r1 r2] (shuffle [top1 top2])]
+      (cond (nil? top1) :player2
+            (nil? top2) :player1
+            (= play :player1) (recur (conj (conj rest1 r1) r2) rest2)
+            :else (recur rest1 (conj (conj rest2 r1) r2))))))
 
-(defmethod print-method clojure.lang.PersistentQueue
-  [q, w]
-  (print-method '<- w) (print-method (seq q) w) (print-method '-< w))
-
-(defn shuffle-cards []
+(defn shuffle-cards [deck]
   (defn shuf [cards p1 p2]
     (if (empty? cards)
       [p1 p2]
       (let [[f s & rest] cards]
         (recur rest (conj p1 f) (conj p2 s)))))
-  (shuf cards [] []))
+  (shuf deck [] []))
 
 (defn play-random-game []
-  (let [[p1-cards p2-cards] (shuffle-cards)]
+  (let [[p1-cards p2-cards] (shuffle-cards cards)]
     (play-game p1-cards p2-cards)))
+
+(defn -main [& args]
+  (play-random-game))
